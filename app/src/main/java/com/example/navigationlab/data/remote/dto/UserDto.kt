@@ -1,4 +1,5 @@
 package com.example.navigationlab.data.remote.dto
+
 import com.example.navigationlab.data.model.Student
 
 data class UserDto(

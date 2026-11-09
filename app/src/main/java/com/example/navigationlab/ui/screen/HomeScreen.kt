@@ -1,6 +1,5 @@
 package com.example.navigationlab.ui.screen
 
-import android.icu.text.StringSearch
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,6 +21,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -35,8 +36,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.navigationlab.R
 import com.example.navigationlab.data.model.Student
 import com.example.navigationlab.ui.home.HomeUiState
 
@@ -45,12 +48,12 @@ fun HomeScreen(
     uiState: HomeUiState,
     onStudentClick: (Int) -> Unit,
     onRetry: () -> Unit,
-    onSearch: (String) -> Unit,
+    onRefresh: () -> Unit,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
     onOpenProfile: () -> Unit,
     onOpenAbout: () -> Unit
 ) {
-    var searchQuery by remember(uiState.searchQuery) { mutableStateOf(uiState.searchQuery) }
-
     when {
         uiState.isLoading -> {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -69,13 +72,6 @@ fun HomeScreen(
             }
         }
         else -> {
-//            LazyColumn {
-//                items(uiState.students) { student ->
-//                    TextButton(onClick = { onStudentClick(student.id)}) {
-//                        Text("${student.id} - ${student.name}")
-//                    }
-//                }
-//            }
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -83,7 +79,19 @@ fun HomeScreen(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("Home", style = MaterialTheme.typography.headlineMedium)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Home", style = MaterialTheme.typography.headlineMedium)
+                    IconButton(onClick = onRefresh) {
+                        Icon(
+                            painter = painterResource(R.drawable.baseline_refresh_24),
+                            contentDescription = "Tombol refresh"
+                        )
+                    }
+                }
 
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -91,17 +99,11 @@ fun HomeScreen(
                 ) {
                     OutlinedTextField(
                         value = searchQuery,
-                        onValueChange = { searchQuery = it },
-                        modifier = Modifier.weight(1f),
+                        onValueChange = onSearchQueryChange,
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
                         label = { Text("Kolom Pencarian") },
                         singleLine = true
                     )
-                    Spacer(
-                        modifier = Modifier.width(10.dp)
-                    )
-                    ElevatedButton(onClick = { onSearch(searchQuery) }) {
-                        Text("Cari")
-                    }
                 }
 
                 for (student in uiState.students) {

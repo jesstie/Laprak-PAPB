@@ -2,7 +2,9 @@ package com.example.navigationlab.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -19,8 +21,9 @@ import com.example.navigationlab.ui.screen.ProfileScreen
 import com.example.navigationlab.data.source.StudentLocalDataSource
 import com.example.navigationlab.data.repository.DefaultStudentRepository
 import com.example.navigationlab.ui.detail.DetailViewModel
+import com.example.navigationlab.ui.detail.DetailViewModel.Companion.DetailViewModelFactory
 import com.example.navigationlab.ui.home.HomeViewModel
-import okhttp3.Route
+import com.example.navigationlab.ui.home.HomeViewModel.Companion.HomeViewModelFactory
 
 @Composable
 fun NavigationLabApp() {
@@ -37,12 +40,18 @@ fun NavigationLabApp() {
         startDestination = Routes.HOME
     ) {
         composable(Routes.HOME) {
-            val homeViewModel = remember { HomeViewModel(repository) }
+            val homeViewModel: HomeViewModel = viewModel(
+                factory = HomeViewModelFactory(repository)
+            )
+            val homeUiState by homeViewModel.uiState.collectAsStateWithLifecycle()
+            val searchQuery by homeViewModel.searchQuery.collectAsStateWithLifecycle()
             HomeScreen(
-                uiState = homeViewModel.uiState,
+                uiState = homeUiState,
                 onStudentClick = { id -> navController.navigate(Routes.detail(id)) },
-                onRetry = homeViewModel::loadStudents,
-                onSearch = homeViewModel::searchStudent,
+                onRetry = homeViewModel::retry,
+                onRefresh = homeViewModel::refresh,
+                searchQuery = searchQuery,
+                onSearchQueryChange = homeViewModel::onSearchQueryChange,
                 onOpenProfile = {
                     navController.navigate(Routes.PROFILE)
                 },
@@ -62,16 +71,17 @@ fun NavigationLabApp() {
             val studentId =
                 backStackEntry.arguments?.getInt("studentId") ?: -1
 
-            val viewModel: DetailViewModel = viewModel(
-                factory = DetailViewModel.factory(repository)
+            val detailViewModel: DetailViewModel = viewModel(
+                factory = DetailViewModelFactory(repository)
             )
+            val detailUiState by detailViewModel.uiState.collectAsStateWithLifecycle()
 
             LaunchedEffect(studentId) {
-                viewModel.loadStudent(studentId)
+                detailViewModel.loadStudent(studentId)
             }
 
             DetailScreen(
-                uiState = viewModel.uiState,
+                uiState = detailUiState,
                 onBack = { navController.popBackStack() }
 
             )

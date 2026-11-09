@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +36,7 @@ fun DetailScreen(
                     Text("University: ${data.university}")
                 }
             }
+            uiState.isLoading -> CircularProgressIndicator()
         }
         Button(onClick = onBack) {
             Text("Kembali")
